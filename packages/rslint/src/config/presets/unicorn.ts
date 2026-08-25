@@ -17,7 +17,7 @@ const recommended: RslintConfigEntry = {
     // 'no-process-exit': 'off',
 
     // 'unicorn/better-dom-traversing': 'error', // not implemented
-    // 'unicorn/catch-error-name': 'error', // not implemented
+    'unicorn/catch-error-name': 'error',
     // 'unicorn/class-reference-in-static-methods': 'error', // not implemented
     // 'unicorn/comment-content': 'off', // not implemented
     // 'unicorn/consistent-arrow-return-style': 'off', // not implemented
@@ -174,7 +174,7 @@ const recommended: RslintConfigEntry = {
     // 'unicorn/no-unsafe-promise-all-settled-values': 'error', // not implemented
     // 'unicorn/no-unsafe-property-key': 'error', // not implemented
     // 'unicorn/no-unsafe-sqlite-interpolation': 'error', // not implemented
-    // 'unicorn/no-unsafe-string-replacement': 'error', // not implemented
+    'unicorn/no-unsafe-string-replacement': 'error',
     // 'unicorn/no-unused-array-method-return': 'error', // not implemented
     // 'unicorn/no-unused-properties': 'off', // not implemented
     // 'unicorn/no-useless-boolean-cast': 'error', // not implemented

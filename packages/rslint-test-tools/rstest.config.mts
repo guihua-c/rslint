@@ -527,6 +527,7 @@ export default defineConfig({
     './tests/eslint/rules/symbol-description.test.ts',
     './tests/eslint/rules/unicode-bom.test.ts',
     './tests/eslint/rules/sort-keys.test.ts',
+    './tests/eslint/rules/sort-vars.test.ts',
 
     // eslint-plugin-jest
     './tests/eslint-plugin-jest/rules/expect-expect.test.ts',
@@ -556,6 +557,7 @@ export default defineConfig({
     './tests/eslint-plugin-jest/rules/prefer-called-with.test.ts',
     './tests/eslint-plugin-jest/rules/prefer-comparison-matcher.test.ts',
     './tests/eslint-plugin-jest/rules/prefer-each.test.ts',
+    './tests/eslint-plugin-jest/rules/prefer-ending-with-an-expect.test.ts',
     './tests/eslint-plugin-jest/rules/prefer-equality-matcher.test.ts',
     './tests/eslint-plugin-jest/rules/prefer-expect-resolves.test.ts',
     './tests/eslint-plugin-jest/rules/prefer-hooks-in-order.test.ts',
@@ -581,6 +583,7 @@ export default defineConfig({
     // rstest
     './tests/rstest/rules/expect-expect.test.ts',
     './tests/rstest/rules/max-expects.test.ts',
+    './tests/rstest/rules/no-alias-methods.test.ts',
     './tests/rstest/rules/no-commented-out-tests.test.ts',
     './tests/rstest/rules/no-conditional-expect.test.ts',
     './tests/rstest/rules/no-conditional-in-test.test.ts',
@@ -616,6 +619,7 @@ export default defineConfig({
     './tests/eslint-plugin-promise/rules/valid-params.test.ts',
 
     // eslint-plugin-unicorn
+    './tests/eslint-plugin-unicorn/rules/catch-error-name.test.ts',
     './tests/eslint-plugin-unicorn/rules/error-message.test.ts',
     './tests/eslint-plugin-unicorn/rules/filename-case.test.ts',
     './tests/eslint-plugin-unicorn/rules/new-for-builtins.test.ts',
@@ -625,6 +629,7 @@ export default defineConfig({
     './tests/eslint-plugin-unicorn/rules/no-invalid-remove-event-listener.test.ts',
     './tests/eslint-plugin-unicorn/rules/no-static-only-class.test.ts',
     './tests/eslint-plugin-unicorn/rules/no-thenable.test.ts',
+    './tests/eslint-plugin-unicorn/rules/no-unsafe-string-replacement.test.ts',
     './tests/eslint-plugin-unicorn/rules/no-useless-switch-case.test.ts',
     './tests/eslint-plugin-unicorn/rules/prefer-array-flat.test.ts',
     './tests/eslint-plugin-unicorn/rules/prefer-array-flat-map.test.ts',
