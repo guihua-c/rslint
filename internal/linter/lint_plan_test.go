@@ -1,6 +1,7 @@
 package linter
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"reflect"
@@ -745,6 +746,73 @@ func TestPrepareLintPlanRequiresRuleHandler(t *testing.T) {
 	}
 }
 
+func TestPrepareLintPlanContextDoesNotPublishCanceledPlan(t *testing.T) {
+	previousProcs := runtime.GOMAXPROCS(2)
+	defer runtime.GOMAXPROCS(previousProcs)
+
+	raw, paths := createTestProgramWithFiles(t, map[string]string{
+		"a.ts": "const a = 1;",
+		"b.ts": "const b = 2;",
+	})
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	secondResolverStarted := make(chan struct{})
+	releaseSecondResolver := make(chan struct{})
+	defer func() {
+		select {
+		case <-releaseSecondResolver:
+		default:
+			close(releaseSecondResolver)
+		}
+	}()
+	cancelIssued := make(chan struct{})
+	type preparationResult struct {
+		plan *LintPlan
+		err  error
+	}
+	resultCh := make(chan preparationResult, 1)
+	go func() {
+		plan, err := PrepareLintPlanContext(ctx, PrepareLintPlanOptions{
+			Programs:         wrapTestPrograms(raw),
+			TargetsByProgram: [][]string{{paths["a.ts"], paths["b.ts"]}},
+			GetRulesForFile: func(source *ast.SourceFile) []rule.ConfiguredRule {
+				switch source.FileName() {
+				case paths["a.ts"]:
+					<-secondResolverStarted
+					cancel()
+					close(cancelIssued)
+				case paths["b.ts"]:
+					close(secondResolverStarted)
+					<-releaseSecondResolver
+				}
+				return noopRule()
+			},
+		})
+		resultCh <- preparationResult{plan: plan, err: err}
+	}()
+
+	select {
+	case <-cancelIssued:
+	case <-time.After(5 * time.Second):
+		t.Fatal("timed out waiting for cancellation")
+	}
+	select {
+	case result := <-resultCh:
+		t.Fatalf("canceled preparation returned before workers joined: (%+v, %v)", result.plan, result.err)
+	case <-time.After(50 * time.Millisecond):
+	}
+	close(releaseSecondResolver)
+
+	select {
+	case result := <-resultCh:
+		if !errors.Is(result.err, context.Canceled) || result.plan != nil {
+			t.Fatalf("canceled preparation = (%+v, %v), want (nil, context.Canceled)", result.plan, result.err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("timed out waiting for canceled preparation to join")
+	}
+}
+
 func TestPrepareLintPlanRejectsTargetOutsideBoundProgramBeforeRuleResolution(t *testing.T) {
 	raw, paths := createTestProgramWithFiles(t, map[string]string{
 		"a.ts": "const a = 1;",
@@ -921,6 +989,30 @@ func TestPreparedLintPlanFreezesProgramTypeCapability(t *testing.T) {
 
 func TestLintSingleFileWithoutRuleHandlerIsNoOp(t *testing.T) {
 	LintSingleFile(LintSingleFileOptions{})
+}
+
+func TestLintSingleFileLeavesSyntaxGateToCaller(t *testing.T) {
+	directory := t.TempDir()
+	writeTestFiles(t, directory, map[string]string{"broken.ts": "const value = ;\n"})
+	targetPath := norm(directory, "broken.ts")
+	programs := wrapTestPrograms(gapProgram(t, directory, []string{targetPath}))
+	var runs atomic.Int32
+	LintSingleFile(LintSingleFileOptions{
+		Program: programs[0],
+		File:    targetPath,
+		GetRulesForFile: func(*ast.SourceFile) []rule.ConfiguredRule {
+			return []rule.ConfiguredRule{{
+				Name: "caller-owned-syntax-gate",
+				Run: func(rule.RuleContext) rule.RuleListeners {
+					runs.Add(1)
+					return nil
+				},
+			}}
+		},
+	})
+	if runs.Load() != 1 {
+		t.Fatalf("LintSingleFile rule runs = %d, want 1", runs.Load())
+	}
 }
 
 func TestLintSingleFileRejectsFileOutsideProgram(t *testing.T) {
